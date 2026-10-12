@@ -10,7 +10,7 @@ Formbricks 6 is no longer a single container. It refuses to start without SpiceD
 
 - **Formbricks**: the official `ghcr.io/formbricks/formbricks:6.0.2` image. A small wrapper runs what upstream's compose does in one-shot jobs before the server starts: database migrations, loading the SpiceDB schema, and setting CORS on the bucket. The health check on `/health` waits for all of that, and upgrading means bumping the image tag.
 - **SpiceDB**: the official `authzed/spicedb:v1.52.0` image (the `-debug` variant, which includes a shell). It migrates its datastore on boot and keeps relationships in Postgres's built-in `postgres` database, separate from the app's data.
-- **Hub**: the official `ghcr.io/formbricks/hub:0.8.7` image. It runs its goose and River migrations on boot and shares the Formbricks database, as upstream does.
+- **Hub**: the official `ghcr.io/formbricks/hub:0.8.7` image. It shares the Formbricks database, as upstream does, so it waits for Formbricks to create its tables and then runs its own goose and River migrations.
 - **Cube**: the official `ghcr.io/formbricks/cube:1.7.47-1` image, with upstream's `cube.js` and feedback-record schema built in, since Railway can't bind-mount config files.
 - **Postgres 17 with pgvector** and **Valkey 8** (sessions, cache, rate limits, background jobs), each with its own volume.
 - **A Railway bucket** for survey images, file-upload answers and logos. Formbricks uploads straight from the browser with presigned POSTs, so the app sets the bucket's CORS rule for your domain on every boot.
@@ -51,7 +51,7 @@ Every secret (auth, encryption, cron, Hub and Cube keys, SpiceDB key, database a
 
 **AI features** (survey generation, taxonomy) are off until you configure an AI provider with the `AI_*` variables. See the Formbricks docs.
 
-**Resources.** In testing, the stack idled at about 1 GB of RAM. Formbricks itself used 650–750 MB, Postgres about 135 MB, Cube about 90 MB, SpiceDB about 85 MB, and Hub and Valkey about 10 MB each. Formbricks alone is over the Trial plan's 512 MB per-service limit, so use the Hobby plan or higher.
+**Resources.** On Railway the stack idled at about 1 GB of RAM: Formbricks itself about 650 MB, Postgres about 200 MB, Cube about 95 MB, SpiceDB about 60 MB, and Hub and Valkey about 20 MB each. Formbricks alone is over the Trial plan's 512 MB per-service limit, so use the Hobby plan or higher.
 
 ## Why Deploy Formbricks on Railway?
 

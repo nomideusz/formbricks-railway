@@ -341,7 +341,7 @@
       "name": "Hub",
       "build": {},
       "deploy": {
-        "startCommand": "/bin/sh -c \"goose -dir /app/migrations postgres $DATABASE_URL up && river migrate-up --database-url $DATABASE_URL && exec /app/hub-api\"",
+        "startCommand": "/bin/sh -c \"until wget -q -O /dev/null $FORMBRICKS_HEALTH_URL; do echo Waiting for Formbricks to finish its migrations; sleep 5; done && goose -dir /app/migrations postgres $DATABASE_URL up && river migrate-up --database-url $DATABASE_URL && exec /app/hub-api\"",
         "healthcheckPath": "/health",
         "restartPolicyType": "ON_FAILURE",
         "restartPolicyMaxRetries": 10
@@ -367,6 +367,16 @@
         "DATABASE_URL": {
           "defaultValue": "postgresql://${{Postgres.POSTGRES_USER}}:${{Postgres.POSTGRES_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/${{Postgres.POSTGRES_DB}}?sslmode=disable",
           "description": "Hub shares the Formbricks database, as upstream does",
+          "isOptional": false
+        },
+        "FORMBRICKS_HEALTH_URL": {
+          "defaultValue": "http://${{Formbricks.RAILWAY_PRIVATE_DOMAIN}}:3000/health",
+          "description": "Hub waits for this before migrating: Formbricks must create its tables in the shared database first (Prisma refuses a non-empty schema)",
+          "isOptional": false
+        },
+        "RAILWAY_HEALTHCHECK_TIMEOUT_SEC": {
+          "defaultValue": "900",
+          "description": "Hub waits for the Formbricks build and first boot before it starts",
           "isOptional": false
         }
       }
