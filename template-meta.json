@@ -1,0 +1,8 @@
+{
+  "name": "Formbricks | Open-Source Typeform & Qualtrics Alternative",
+  "short_name": "Formbricks Surveys",
+  "description": "Surveys, NPS and in-app feedback on your own Postgres, Hub and Cube",
+  "category": "Analytics",
+  "image": "https://raw.githubusercontent.com/nomideusz/formbricks-railway/main/icon.svg",
+  "card_desc": "Formbricks 6: the open-source Typeform and Qualtrics alternative. Link, website and in-app surveys, NPS and CSAT, with the full v6 stack (Hub, Cube, SpiceDB) and uploads in a Railway bucket."
+}

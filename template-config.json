@@ -1,0 +1,456 @@
+{
+  "buckets": {
+    "da6d8164-7e15-4f3a-a22d-cb04e48ab3b6": {
+      "name": "uploads"
+    }
+  },
+  "services": {
+    "504381eb-4bbb-4afe-8710-22c7f0ada935": {
+      "icon": "https://raw.githubusercontent.com/nomideusz/formbricks-railway/main/icon.svg",
+      "name": "Formbricks",
+      "build": {},
+      "deploy": {
+        "startCommand": null,
+        "healthcheckPath": "/health",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "repo": "https://github.com/nomideusz/formbricks-railway",
+        "rootDirectory": "/formbricks"
+      },
+      "networking": {
+        "serviceDomains": {
+          "<hasDomain>": {}
+        }
+      },
+      "volumeMounts": {},
+      "variables": {
+        "PORT": {
+          "defaultValue": "3000",
+          "description": "Port Formbricks listens on - leave as is",
+          "isOptional": false
+        },
+        "HOSTNAME": {
+          "defaultValue": "::",
+          "description": "Listen on IPv6 and IPv4 so Railway's private network and health check can reach it",
+          "isOptional": false
+        },
+        "WEBAPP_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+          "description": "Public URL of Formbricks (links, emails, uploads CORS) - set it to your custom domain after adding one",
+          "isOptional": false
+        },
+        "NEXTAUTH_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+          "description": "Auth base URL - keep equal to WEBAPP_URL",
+          "isOptional": false
+        },
+        "DATABASE_URL": {
+          "defaultValue": "postgresql://${{Postgres.POSTGRES_USER}}:${{Postgres.POSTGRES_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/${{Postgres.POSTGRES_DB}}",
+          "description": "Postgres (with pgvector) on the private network",
+          "isOptional": false
+        },
+        "NEXTAUTH_SECRET": {
+          "defaultValue": "${{secret(64, \"0123456789abcdef\")}}",
+          "description": "Signs sessions and sign-up tokens. Changing it logs everyone out",
+          "isOptional": false
+        },
+        "ENCRYPTION_KEY": {
+          "defaultValue": "${{secret(64, \"0123456789abcdef\")}}",
+          "description": "Encrypts 2FA secrets and single-use survey links. BACK IT UP - changing it breaks them",
+          "isOptional": false
+        },
+        "CRON_SECRET": {
+          "defaultValue": "${{secret(64, \"0123456789abcdef\")}}",
+          "description": "Protects the internal cron API",
+          "isOptional": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "redis://default:${{Valkey.VALKEY_PASSWORD}}@${{Valkey.RAILWAY_PRIVATE_DOMAIN}}:6379?family=0",
+          "description": "Valkey for sessions, cache, rate limits and background jobs (family=0 lets it connect over IPv6)",
+          "isOptional": false
+        },
+        "HUB_API_KEY": {
+          "defaultValue": "${{secret(64, \"0123456789abcdef\")}}",
+          "description": "Shared key between Formbricks and Formbricks Hub (the Hub service reads it from here)",
+          "isOptional": false
+        },
+        "HUB_API_URL": {
+          "defaultValue": "http://${{Hub.RAILWAY_PRIVATE_DOMAIN}}:8080",
+          "description": "Formbricks Hub on the private network",
+          "isOptional": false
+        },
+        "CUBEJS_API_SECRET": {
+          "defaultValue": "${{secret(64, \"0123456789abcdef\")}}",
+          "description": "Signs analytics queries to Cube (the Cube service reads it from here)",
+          "isOptional": false
+        },
+        "CUBEJS_API_URL": {
+          "defaultValue": "http://${{Cube.RAILWAY_PRIVATE_DOMAIN}}:4000",
+          "description": "Cube analytics API on the private network",
+          "isOptional": false
+        },
+        "CUBEJS_JWT_ISSUER": {
+          "defaultValue": "formbricks-web",
+          "description": "Issuer claim on Cube tokens - must match the Cube service",
+          "isOptional": false
+        },
+        "CUBEJS_JWT_AUDIENCE": {
+          "defaultValue": "formbricks-cube",
+          "description": "Audience claim on Cube tokens - must match the Cube service",
+          "isOptional": false
+        },
+        "AUTHZED_ENABLED": {
+          "defaultValue": "true",
+          "description": "Formbricks 6 refuses to start without SpiceDB authorization",
+          "isOptional": false
+        },
+        "AUTHZED_ENDPOINT": {
+          "defaultValue": "${{SpiceDB.RAILWAY_PRIVATE_DOMAIN}}:50051",
+          "description": "SpiceDB gRPC on the private network",
+          "isOptional": false
+        },
+        "AUTHZED_TOKEN": {
+          "defaultValue": "${{SpiceDB.SPICEDB_GRPC_PRESHARED_KEY}}",
+          "description": "SpiceDB preshared key",
+          "isOptional": false
+        },
+        "AUTHZED_SYSTEM_KEY": {
+          "defaultValue": "formbricks",
+          "description": "SpiceDB system object id",
+          "isOptional": false
+        },
+        "AUTHZED_INSECURE": {
+          "defaultValue": "true",
+          "description": "Plaintext gRPC - traffic stays on Railway's private network",
+          "isOptional": false
+        },
+        "AUTHZED_CONSISTENCY": {
+          "defaultValue": "fully_consistent",
+          "description": "Required by Formbricks 6",
+          "isOptional": false
+        },
+        "EMAIL_VERIFICATION_DISABLED": {
+          "defaultValue": "1",
+          "description": "No email verification on sign-up (needs SMTP). Set to 0 after configuring SMTP",
+          "isOptional": false
+        },
+        "PASSWORD_RESET_DISABLED": {
+          "defaultValue": "1",
+          "description": "No password-reset emails (needs SMTP). Set to 0 after configuring SMTP",
+          "isOptional": false
+        },
+        "S3_ACCESS_KEY": {
+          "defaultValue": "${{uploads.ACCESS_KEY_ID}}",
+          "description": "Railway bucket access key",
+          "isOptional": false
+        },
+        "S3_SECRET_KEY": {
+          "defaultValue": "${{uploads.SECRET_ACCESS_KEY}}",
+          "description": "Railway bucket secret key",
+          "isOptional": false
+        },
+        "S3_BUCKET_NAME": {
+          "defaultValue": "${{uploads.BUCKET}}",
+          "description": "Railway bucket for survey images, file-upload answers and logos",
+          "isOptional": false
+        },
+        "S3_REGION": {
+          "defaultValue": "${{uploads.REGION}}",
+          "description": "Railway bucket region",
+          "isOptional": false
+        },
+        "S3_ENDPOINT_URL": {
+          "defaultValue": "${{uploads.ENDPOINT}}",
+          "description": "Railway bucket endpoint",
+          "isOptional": false
+        },
+        "S3_FORCE_PATH_STYLE": {
+          "defaultValue": "0",
+          "description": "Railway buckets use virtual-host style URLs - keep 0",
+          "isOptional": false
+        },
+        "MAIL_FROM": {
+          "defaultValue": "",
+          "description": "Optional sender address, e.g. surveys@example.com (all SMTP settings need real values; Railway allows outbound SMTP on Pro only)",
+          "isOptional": true
+        },
+        "MAIL_FROM_NAME": {
+          "defaultValue": "",
+          "description": "Optional sender name",
+          "isOptional": true
+        },
+        "SMTP_HOST": {
+          "defaultValue": "",
+          "description": "Optional SMTP server for invites, verification and password resets",
+          "isOptional": true
+        },
+        "SMTP_PORT": {
+          "defaultValue": "",
+          "description": "SMTP port, e.g. 587 or 465",
+          "isOptional": true
+        },
+        "SMTP_USER": {
+          "defaultValue": "",
+          "description": "SMTP username",
+          "isOptional": true
+        },
+        "SMTP_PASSWORD": {
+          "defaultValue": "",
+          "description": "SMTP password",
+          "isOptional": true
+        },
+        "SMTP_SECURE_ENABLED": {
+          "defaultValue": "",
+          "description": "1 for implicit TLS (port 465), 0 for STARTTLS",
+          "isOptional": true
+        },
+        "RAILWAY_HEALTHCHECK_TIMEOUT_SEC": {
+          "defaultValue": "600",
+          "description": "Every boot runs migrations and the SpiceDB schema sync before the health check can pass",
+          "isOptional": false
+        }
+      }
+    },
+    "a95753d6-1bf2-49bc-9fd2-3c004e2a8403": {
+      "icon": "https://devicons.railway.app/i/postgresql.svg",
+      "name": "Postgres",
+      "build": {},
+      "deploy": {
+        "startCommand": null,
+        "healthcheckPath": null,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "image": "pgvector/pgvector:0.8.7-pg17"
+      },
+      "networking": {
+        "serviceDomains": {}
+      },
+      "volumeMounts": {
+        "0a7f88a3-e2fc-4c6c-b424-d66de848779c": {
+          "mountPath": "/var/lib/postgresql/data"
+        }
+      },
+      "variables": {
+        "POSTGRES_DB": {
+          "defaultValue": "formbricks",
+          "description": "Database name",
+          "isOptional": false
+        },
+        "POSTGRES_USER": {
+          "defaultValue": "formbricks",
+          "description": "Database user (superuser - Hub creates the vector and pgcrypto extensions)",
+          "isOptional": false
+        },
+        "POSTGRES_PASSWORD": {
+          "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Auto-generated database password",
+          "isOptional": false
+        },
+        "PGDATA": {
+          "defaultValue": "/var/lib/postgresql/data/pgdata",
+          "description": "Data subdirectory - keeps Postgres happy on Railway volumes",
+          "isOptional": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Time for Postgres to shut down cleanly on redeploy",
+          "isOptional": false
+        }
+      }
+    },
+    "8f2bee02-0b8e-4692-a5bf-5d1dd1a66c1d": {
+      "icon": "https://devicons.railway.app/i/redis.svg",
+      "name": "Valkey",
+      "build": {},
+      "deploy": {
+        "startCommand": "/bin/sh -c \"chown -R valkey:valkey /data && exec docker-entrypoint.sh valkey-server --requirepass $VALKEY_PASSWORD --appendonly yes --maxmemory-policy noeviction\"",
+        "healthcheckPath": null,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "image": "valkey/valkey:8.1.9-alpine"
+      },
+      "networking": {
+        "serviceDomains": {}
+      },
+      "volumeMounts": {
+        "bd965245-fede-40c0-a1da-ad4c87e032ca": {
+          "mountPath": "/data"
+        }
+      },
+      "variables": {
+        "VALKEY_PASSWORD": {
+          "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Auto-generated Valkey password",
+          "isOptional": false
+        }
+      }
+    },
+    "6ffda067-a0e0-4382-b27a-29e455f3e0ef": {
+      "icon": null,
+      "name": "SpiceDB",
+      "build": {},
+      "deploy": {
+        "startCommand": "/bin/sh -c \"until spicedb datastore migrate head; do sleep 3; done && exec spicedb serve --telemetry-endpoint=\"",
+        "healthcheckPath": "/metrics",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "image": "authzed/spicedb:v1.52.0-debug"
+      },
+      "networking": {
+        "serviceDomains": {}
+      },
+      "volumeMounts": {},
+      "variables": {
+        "SPICEDB_DATASTORE_ENGINE": {
+          "defaultValue": "postgres",
+          "description": "SpiceDB stores relationships in Postgres",
+          "isOptional": false
+        },
+        "SPICEDB_DATASTORE_CONN_URI": {
+          "defaultValue": "postgresql://${{Postgres.POSTGRES_USER}}:${{Postgres.POSTGRES_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/postgres?sslmode=disable",
+          "description": "SpiceDB uses the built-in postgres database, separate from the formbricks one",
+          "isOptional": false
+        },
+        "SPICEDB_GRPC_PRESHARED_KEY": {
+          "defaultValue": "${{secret(48, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Auto-generated key Formbricks uses to call SpiceDB",
+          "isOptional": false
+        },
+        "SPICEDB_LOG_FORMAT": {
+          "defaultValue": "json",
+          "description": "Log format",
+          "isOptional": false
+        },
+        "PORT": {
+          "defaultValue": "9090",
+          "description": "Metrics port, used as the health check (only answers once the datastore is migrated)",
+          "isOptional": false
+        }
+      }
+    },
+    "9ede0c30-7446-4961-bfaf-d3fd3d4f3129": {
+      "icon": "https://raw.githubusercontent.com/nomideusz/formbricks-railway/main/icon.svg",
+      "name": "Hub",
+      "build": {},
+      "deploy": {
+        "startCommand": "/bin/sh -c \"goose -dir /app/migrations postgres $DATABASE_URL up && river migrate-up --database-url $DATABASE_URL && exec /app/hub-api\"",
+        "healthcheckPath": "/health",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "image": "ghcr.io/formbricks/hub:0.8.7"
+      },
+      "networking": {
+        "serviceDomains": {}
+      },
+      "volumeMounts": {},
+      "variables": {
+        "PORT": {
+          "defaultValue": "8080",
+          "description": "Port Hub listens on - leave as is",
+          "isOptional": false
+        },
+        "API_KEY": {
+          "defaultValue": "${{Formbricks.HUB_API_KEY}}",
+          "description": "Shared with Formbricks",
+          "isOptional": false
+        },
+        "DATABASE_URL": {
+          "defaultValue": "postgresql://${{Postgres.POSTGRES_USER}}:${{Postgres.POSTGRES_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/${{Postgres.POSTGRES_DB}}?sslmode=disable",
+          "description": "Hub shares the Formbricks database, as upstream does",
+          "isOptional": false
+        }
+      }
+    },
+    "f1a4057b-c544-4407-82fc-a78dc201aead": {
+      "icon": "https://raw.githubusercontent.com/nomideusz/formbricks-railway/main/icon.svg",
+      "name": "Cube",
+      "build": {},
+      "deploy": {
+        "startCommand": null,
+        "healthcheckPath": "/readyz",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "repo": "https://github.com/nomideusz/formbricks-railway",
+        "rootDirectory": "/cube"
+      },
+      "networking": {
+        "serviceDomains": {}
+      },
+      "volumeMounts": {},
+      "variables": {
+        "PORT": {
+          "defaultValue": "4000",
+          "description": "Port Cube listens on - leave as is",
+          "isOptional": false
+        },
+        "CUBEJS_DB_TYPE": {
+          "defaultValue": "postgres",
+          "description": "Cube reads Hub's feedback records from Postgres",
+          "isOptional": false
+        },
+        "CUBEJS_DB_HOST": {
+          "defaultValue": "${{Postgres.RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Postgres host",
+          "isOptional": false
+        },
+        "CUBEJS_DB_PORT": {
+          "defaultValue": "5432",
+          "description": "Postgres port",
+          "isOptional": false
+        },
+        "CUBEJS_DB_NAME": {
+          "defaultValue": "${{Postgres.POSTGRES_DB}}",
+          "description": "Database name",
+          "isOptional": false
+        },
+        "CUBEJS_DB_USER": {
+          "defaultValue": "${{Postgres.POSTGRES_USER}}",
+          "description": "Database user",
+          "isOptional": false
+        },
+        "CUBEJS_DB_PASS": {
+          "defaultValue": "${{Postgres.POSTGRES_PASSWORD}}",
+          "description": "Database password",
+          "isOptional": false
+        },
+        "CUBEJS_API_SECRET": {
+          "defaultValue": "${{Formbricks.CUBEJS_API_SECRET}}",
+          "description": "Shared with Formbricks",
+          "isOptional": false
+        },
+        "CUBEJS_JWT_ISSUER": {
+          "defaultValue": "formbricks-web",
+          "description": "Must match Formbricks",
+          "isOptional": false
+        },
+        "CUBEJS_JWT_AUDIENCE": {
+          "defaultValue": "formbricks-cube",
+          "description": "Must match Formbricks",
+          "isOptional": false
+        },
+        "CUBEJS_DEFAULT_API_SCOPES": {
+          "defaultValue": "meta,data",
+          "description": "API scopes",
+          "isOptional": false
+        },
+        "CUBEJS_CACHE_AND_QUEUE_DRIVER": {
+          "defaultValue": "memory",
+          "description": "In-memory cache and queue, as in upstream's compose (no Cube Store needed)",
+          "isOptional": false
+        }
+      }
+    }
+  }
+}
