@@ -1,6 +1,6 @@
 # Deploy and Host Formbricks on Railway
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/formbricks-surveys?utm_medium=integration&utm_source=button&utm_campaign=formbricks-surveys)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/formbricks-surveys?referralCode=sLjDXb&utm_medium=integration&utm_source=button&utm_campaign=formbricks-surveys)
 
 [Formbricks](https://formbricks.com/) is the open-source alternative to Typeform and Qualtrics: link surveys, website and in-app surveys, NPS and CSAT, with targeting, multi-language surveys, webhooks and an API, on data you own. This template runs Formbricks 6 with every service it needs to start: Postgres with pgvector, Valkey, Formbricks Hub, Cube and SpiceDB. Uploads go to a Railway bucket.
 
