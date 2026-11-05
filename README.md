@@ -6,12 +6,13 @@
 
 ## About Hosting Formbricks
 
-Formbricks 6 is no longer a single container. It refuses to start without SpiceDB for authorization, and it needs Hub (feedback records) and Cube (analytics) as well. This template runs the full stack in six services and a bucket:
+Formbricks 6 is no longer a single container. It refuses to start without SpiceDB for authorization, and it needs Hub (feedback records) and Cube (analytics) as well. This template runs the full stack in seven services and a bucket:
 
-- **Formbricks**: the official `ghcr.io/formbricks/formbricks:6.0.2` image. A small wrapper runs what upstream's compose does in one-shot jobs before the server starts: database migrations, loading the SpiceDB schema, and setting CORS on the bucket. The health check on `/health` waits for all of that, and upgrading means bumping the image tag.
-- **SpiceDB**: the official `authzed/spicedb:v1.52.0` image (the `-debug` variant, which includes a shell). It migrates its datastore on boot and keeps relationships in Postgres's built-in `postgres` database, separate from the app's data.
-- **Hub**: the official `ghcr.io/formbricks/hub:0.8.7` image. It shares the Formbricks database, as upstream does, so it waits for Formbricks to create its tables and then runs its own goose and River migrations.
-- **Cube**: the official `ghcr.io/formbricks/cube:1.7.47-1` image, with upstream's `cube.js` and feedback-record schema built in, since Railway can't bind-mount config files.
+- **Formbricks**: the official `ghcr.io/formbricks/formbricks:6.1.3` image. A small wrapper runs what upstream's compose does in one-shot jobs before the server starts: database migrations, loading the SpiceDB schema, and setting CORS on the bucket. The health check on `/health` waits for all of that, and upgrading means bumping the image tag.
+- **SpiceDB**: the official `authzed/spicedb:v1.57.0` image (the `-debug` variant, which includes a shell). It migrates its datastore on boot and keeps relationships in Postgres's built-in `postgres` database, separate from the app's data.
+- **Hub**: the official `ghcr.io/formbricks/hub:0.14.1` image. It shares the Formbricks database, as upstream does, so it waits for Formbricks to create its tables and then runs its own goose and River migrations.
+- **Hub Worker**: the same image, running `hub-worker`. It processes Hub's background jobs, such as webhooks and enrichments.
+- **Cube**: the official `ghcr.io/formbricks/cube:1.8.8-2` image, with upstream's `cube.js` and feedback-record schema built in, since Railway can't bind-mount config files.
 - **Postgres 17 with pgvector** and **Valkey 8** (sessions, cache, rate limits, background jobs), each with its own volume.
 - **A Railway bucket** for survey images, file-upload answers and logos. Formbricks uploads straight from the browser with presigned POSTs, so the app sets the bucket's CORS rule for your domain on every boot.
 
@@ -44,6 +45,8 @@ Every secret (auth, encryption, cron, Hub and Cube keys, SpiceDB key, database a
 **Email (optional).** Without SMTP, email verification and password-reset emails are off (`EMAIL_VERIFICATION_DISABLED=1`, `PASSWORD_RESET_DISABLED=1`), and invites give you a link to copy. To send email, fill in the optional `MAIL_FROM`, `MAIL_FROM_NAME`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` and `SMTP_SECURE_ENABLED` (`1` for port 465) variables, then set the two `*_DISABLED` flags to `0`. Railway only allows outbound SMTP on the Pro plan. Don't set any of them to an empty string: Formbricks rejects empty values at startup.
 
 **Custom domain.** After adding one, set `WEBAPP_URL` and `NEXTAUTH_URL` to `https://your-domain` and redeploy. The bucket CORS rule follows `WEBAPP_URL` (and `PUBLIC_URL`, if you serve link surveys from a separate domain) on the next boot.
+
+**Upgrading from 6.0 to 6.1.** The boot step updates SpiceDB's permissions schema by itself when the new schema only adds to the old one, as 6.1's does. If a future schema removes or rewrites something, it stays blocked, the deploy logs say "AuthZed schema needs review", and the server still starts. Single-use survey links created before 6.1 stop working, so create and send them again. Hub Worker is a new service, so an existing deploy doesn't get it automatically: to have Hub's webhooks and enrichments run, add a service from the image `ghcr.io/formbricks/hub:0.14.1` with the start command `/app/hub-worker` and the same `DATABASE_URL` as Hub. An existing deploy also keeps its current Hub and SpiceDB images until you change them. Surveys and responses were tested working on 6.1.3 with Hub 0.8.7 and SpiceDB 1.52.
 
 **Back up these values.** `ENCRYPTION_KEY` protects 2FA secrets and single-use survey links, and `NEXTAUTH_SECRET` signs sessions. Changing the first breaks them; changing the second logs everyone out.
 

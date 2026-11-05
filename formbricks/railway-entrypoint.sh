@@ -13,8 +13,21 @@ node packages/database/dist/scripts/apply-migrations.js
 # Load the AuthZed schema and backfill relationships (idempotent, upstream runs it on
 # every `compose up`). SpiceDB may still be migrating its datastore on first boot.
 # Like upstream, the server still starts if it never succeeds; the log says why.
+# A changed schema is only written once its current digest is confirmed, and Railway has no
+# maintenance step to do that in. Confirm it here only if the change purely adds to the schema,
+# as 6.0 to 6.1 does. Anything removed or rewritten stays blocked and logged for the deployer.
+additive_digest() {
+  formbricks-authzed schema check 2>/dev/null | tail -n 1 | node -e '
+    const r = JSON.parse(require("fs").readFileSync(0, "utf8"));
+    const kinds = Object.keys(r.differenceKinds || {});
+    if (r.remoteDigest && kinds.every((k) => /(_added|_doc_comment_changed)$/.test(k))) console.log(r.remoteDigest);
+    else console.error("AuthZed schema needs review:", JSON.stringify(r.differenceKinds));
+  '
+}
 n=0
-until formbricks-authzed upgrade prepare; do
+until formbricks-authzed upgrade prepare || {
+  digest=$(additive_digest) && [ -n "$digest" ] && formbricks-authzed upgrade prepare --expected-current-digest "$digest"
+}; do
   n=$((n + 1))
   if [ "$n" -ge 30 ]; then echo "WARNING: AuthZed prepare did not succeed; see formbricks.com/docs/self-hosting/advanced/authzed-operations"; break; fi
   sleep 5

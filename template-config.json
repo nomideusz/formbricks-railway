@@ -273,7 +273,7 @@
         "restartPolicyMaxRetries": 10
       },
       "source": {
-        "image": "valkey/valkey:8.1.9-alpine"
+        "image": "valkey/valkey:8.1.11-alpine"
       },
       "networking": {
         "serviceDomains": {}
@@ -302,7 +302,7 @@
         "restartPolicyMaxRetries": 10
       },
       "source": {
-        "image": "authzed/spicedb:v1.52.0-debug"
+        "image": "authzed/spicedb:v1.57.0-debug"
       },
       "networking": {
         "serviceDomains": {}
@@ -347,7 +347,7 @@
         "restartPolicyMaxRetries": 10
       },
       "source": {
-        "image": "ghcr.io/formbricks/hub:0.8.7"
+        "image": "ghcr.io/formbricks/hub:0.14.1"
       },
       "networking": {
         "serviceDomains": {}
@@ -458,6 +458,35 @@
         "CUBEJS_CACHE_AND_QUEUE_DRIVER": {
           "defaultValue": "memory",
           "description": "In-memory cache and queue, as in upstream's compose (no Cube Store needed)",
+          "isOptional": false
+        }
+      }
+    },
+    "03d8f48f-a439-439d-bb3b-ae19d4a50a34": {
+      "icon": "https://raw.githubusercontent.com/two-workspaces/formbricks/main/icon.svg",
+      "name": "Hub Worker",
+      "build": {},
+      "deploy": {
+        "startCommand": "/bin/sh -c \"until wget -q -O /dev/null $HUB_HEALTH_URL; do echo Waiting for Hub to finish its migrations; sleep 5; done && exec /app/hub-worker\"",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "image": "ghcr.io/formbricks/hub:0.14.1"
+      },
+      "networking": {
+        "serviceDomains": {}
+      },
+      "volumeMounts": {},
+      "variables": {
+        "DATABASE_URL": {
+          "defaultValue": "postgresql://${{Postgres.POSTGRES_USER}}:${{Postgres.POSTGRES_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/${{Postgres.POSTGRES_DB}}?sslmode=disable",
+          "description": "Same database as Hub, where its job queue lives",
+          "isOptional": false
+        },
+        "HUB_HEALTH_URL": {
+          "defaultValue": "http://${{Hub.RAILWAY_PRIVATE_DOMAIN}}:8080/health",
+          "description": "The worker waits for Hub's migrations before it starts",
           "isOptional": false
         }
       }
