@@ -347,7 +347,7 @@
         "restartPolicyMaxRetries": 10
       },
       "source": {
-        "image": "ghcr.io/formbricks/hub:0.14.1"
+        "image": "ghcr.io/formbricks/hub:0.14.2"
       },
       "networking": {
         "serviceDomains": {}
@@ -472,7 +472,7 @@
         "restartPolicyMaxRetries": 10
       },
       "source": {
-        "image": "ghcr.io/formbricks/hub:0.14.1"
+        "image": "ghcr.io/formbricks/hub:0.14.2"
       },
       "networking": {
         "serviceDomains": {}
